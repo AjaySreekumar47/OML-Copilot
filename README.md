@@ -40,10 +40,6 @@ OML-Copilot uses a combination of techniques:
 
 ![Architecture Diagram](docs/images/architecture.png)
 
-## Demo
-
-### Interactive Demo
-Check out our [interactive demo](https://ajaysreekumar47.github.io/oml-copilot-demo) to see OML-Copilot in action.
 
 ### Example Usage
 ```
@@ -73,7 +69,7 @@ python setup.py install
 ## Getting Started
 See our [Quick Start Guide](docs/quick-start.md) for instructions on using OML-Copilot with your projects.
 
-## Publications and Presentations
+## Presentations
 - [onto:Nexus Forum 2025 Presentation](https://www.youtube.com/watch?v=fleR6-Fiazo)
 
 ## Research Process
