@@ -43,7 +43,7 @@ OML-Copilot uses a combination of techniques:
 
 ### Interactive Notebook
 
-![Agentic Workflow Notebook](https://colab.research.google.com/drive/1yEh3t6-C3XvQSfJzBXCoco59BYSHuAZo?usp=sharing)
+[Agentic Workflow Notebook](https://colab.research.google.com/drive/1yEh3t6-C3XvQSfJzBXCoco59BYSHuAZo?usp=sharing)
 
 ### Example Usage
 ```
