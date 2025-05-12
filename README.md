@@ -41,6 +41,10 @@ OML-Copilot uses a combination of techniques:
 ![Architecture Diagram](docs/images/architecture.png)
 
 
+### Interactive Notebook
+
+![Agentic Workflow Notebook](https://colab.research.google.com/drive/1yEh3t6-C3XvQSfJzBXCoco59BYSHuAZo?usp=sharing)
+
 ### Example Usage
 ```
 User: "Create a vocabulary for musical instruments that includes classification by family"
