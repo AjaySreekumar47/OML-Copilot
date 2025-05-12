@@ -74,8 +74,7 @@ python setup.py install
 See our [Quick Start Guide](docs/quick-start.md) for instructions on using OML-Copilot with your projects.
 
 ## Publications and Presentations
-- [onto:Nexus Forum 2025 Presentation](docs/presentations/onto-nexus-2025.pdf)
-- [JPL Internal Review](docs/presentations/jpl-review-2025.pdf)
+- [onto:Nexus Forum 2025 Presentation]((https://www.youtube.com/watch?v=fleR6-Fiazo))
 
 ## Research Process
 This project was developed through several stages:
