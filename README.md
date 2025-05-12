@@ -66,10 +66,8 @@ pip install -r requirements.txt
 python setup.py install
 ```
 
-## Getting Started
-See our [Quick Start Guide](docs/quick-start.md) for instructions on using OML-Copilot with your projects.
 
-## Presentations
+## Presentation
 - [onto:Nexus Forum 2025 Presentation](https://www.youtube.com/watch?v=fleR6-Fiazo)
 
 ## Research Process
