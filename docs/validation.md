@@ -43,6 +43,7 @@ oml_grammar = r"""
     %ignore WS
     %ignore NEWLINE
 """
+```
 
 ### Error Detection Process
 When code fails validation, the system:
