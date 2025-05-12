@@ -1,0 +1,256 @@
+start: ontology
+
+%ignore WS
+
+%ignore SL_COMMENT
+
+ontology: vocabulary_box | description_box
+
+vocabulary_box: vocabulary | vocabulary_bundle
+
+description_box: description | description_bundle
+
+annotation: "@" annotation_property_ref (annotation_value ("," annotation_value)*)?
+
+annotation_value: literal | member_ref
+
+member_ref: ID | QNAME | IRI
+
+vocabulary: annotation* "vocabulary" NAMESPACE "as" ID "{" (extension | usage)* vocabulary_statement* "}"
+
+vocabulary_bundle: annotation* "vocabulary" "bundle" NAMESPACE "as" ID "{" (extension | inclusion)* "}"
+
+description: annotation* "description" NAMESPACE "as" ID "{" (extension | usage)* description_statement* "}"
+
+description_bundle: annotation* "description" "bundle" NAMESPACE "as" ID "{" (extension | usage | inclusion)* "}"
+
+specializable_term: type | annotation_property | scalar_property | unreified_relation
+
+type: entity | scalar
+
+entity: aspect | concept | relation_entity
+
+aspect: annotation* ("aspect" ID | "ref" "aspect" aspect_ref) ("[" key_axiom* "]")? entity_specialization? entity_equivalence?
+
+aspect_ref: ID | QNAME | IRI
+
+concept: annotation* ("concept" ID | "ref" "concept" concept_ref) ("[" instance_enumeration_axiom? key_axiom* "]")? entity_specialization? entity_equivalence?
+
+concept_ref: ID | QNAME | IRI
+
+relation_entity: annotation* ("relation" "entity" ID | "ref" "relation" "entity" relation_entity_ref) ("[" ("from" entity_ref ("," entity_ref)*)? ("to" entity_ref ("," entity_ref)*)? forward_relation? reverse_relation? ("functional")? ("inverse" "functional")? ("symmetric")? ("asymmetric")? ("reflexive")? ("irreflexive")? ("transitive")? key_axiom* "]")? entity_specialization? entity_equivalence?
+
+entity_ref: ID | QNAME | IRI
+
+relation_entity_ref: ID | QNAME | IRI
+
+entity_specialization: "<" (entity_ref ("," entity_ref)* | (entity_ref ("," entity_ref)*)? "[" property_restriction_axiom* "]")
+
+entity_equivalence: "=" entity_equivalence_axiom ("," entity_equivalence_axiom)*
+
+entity_equivalence_axiom: entity_ref ("&" entity_ref)*
+                        | entity_ref ("&" entity_ref)* "[" property_restriction_axiom* "]"
+
+scalar: annotation* ("scalar" ID | "ref" "scalar" scalar_ref) ("[" literal_enumeration_axiom? "]")? scalar_specialization? scalar_equivalence?
+
+scalar_ref: ID | QNAME | IRI
+
+scalar_specialization: "<" scalar ("," scalar)*
+
+scalar_equivalence: "=" scalar_equivalence_axiom ("," scalar_equivalence_axiom)*
+
+scalar_equivalence_axiom: scalar_ref ("[" ("length" UNSIGNED_INTEGER)? ("minLength" UNSIGNED_INTEGER)? ("maxLength" UNSIGNED_INTEGER)? ("pattern" STRING)? ("language" ID)? ("minInclusive" literal)? ("minExclusive" literal)? ("maxInclusive" literal)? ("maxExclusive" literal)? "]")?
+
+property: annotation_property | semantic_property
+
+annotation_property: annotation* ("annotation" "property" ID | "ref" "annotation" "property" annotation_property_ref) property_specialization? property_equivalence?
+
+annotation_property_ref: ID | QNAME | IRI
+
+semantic_property: scalar_property | relation
+
+scalar_property: annotation* ("scalar" "property" ID | "ref" "scalar" "property" scalar_property_ref) ("[" ("domain" entity_ref ("," entity_ref)*)? ("range" scalar_ref ("," scalar_ref)*)? ("functional")? "]")? property_specialization? property_equivalence?
+
+scalar_property_ref: ID | QNAME | IRI
+
+relation: forward_relation | reverse_relation | unreified_relation
+
+forward_relation: annotation* "forward" ID
+
+reverse_relation: annotation* "reverse" ID
+
+unreified_relation: annotation* ("relation" ID | "ref" "relation" relation_ref) ("[" ("from" entity_ref ("," entity_ref)*)? ("to" entity_ref ("," entity_ref)*)? reverse_relation? ("functional")? ("inverse" "functional")? ("symmetric")? ("asymmetric")? ("reflexive")? ("irreflexive")? ("transitive")? "]")? property_specialization? property_equivalence?
+
+relation_ref: ID | QNAME | IRI
+
+property_specialization: "<" property ("," property)*
+
+property_equivalence: "=" property_equivalence_axiom ("," property_equivalence_axiom)*
+
+property_equivalence_axiom: property_ref
+
+property_ref: ID | QNAME | IRI
+
+rule: annotation* ("rule" ID | "ref" "rule" rule_ref) ("[" (predicate ("&" predicate)* "->" predicate ("&" predicate)*)? "]")?
+
+rule_ref: ID | QNAME | IRI
+
+builtin: annotation* ("builtin" ID | "ref" "builtin" builtin_ref)
+
+builtin_ref: ID | QNAME | IRI
+
+anonymous_instance: anonymous_concept_instance | anonymous_relation_instance
+
+anonymous_concept_instance: (":" entity_ref)? "[" property_value_assertion* "]"
+
+anonymous_relation_instance: named_instance_ref "[" property_value_assertion* "]"
+
+named_instance_ref: ID | QNAME | IRI
+
+named_instance: concept_instance | relation_instance
+
+concept_instance: annotation* ("instance" ID | "ref" "instance" concept_instance_ref) (":" concept_type_assertion ("," concept_type_assertion)*)? ("[" property_value_assertion* "]")?
+
+concept_instance_ref: ID | QNAME | IRI
+
+relation_instance: annotation* ("relation" "instance" ID | "ref" "relation" "instance" relation_instance_ref) (":" relation_type_assertion ("," relation_type_assertion)*)? ("[" ("from" named_instance_ref ("," named_instance_ref)*)? ("to" named_instance_ref ("," named_instance_ref)*)? property_value_assertion* "]")?
+
+relation_instance_ref: ID | QNAME | IRI
+
+vocabulary_statement: rule | builtin | specializable_term
+
+description_statement: named_instance
+
+import: extension | usage | inclusion
+
+extension: "extends" NAMESPACE ("as" ID)?
+
+usage: "uses" NAMESPACE ("as" ID)?
+
+inclusion: "includes" NAMESPACE ("as" ID)?
+
+property_restriction_axiom: property_self_restriction_axiom | property_range_restriction_axiom | property_cardinality_restriction_axiom | property_value_restriction_axiom
+
+property_range_restriction_axiom: "restricts" range_restriction_kind semantic_property_ref "to" type_ref
+
+type_ref: ID | QNAME | IRI
+
+semantic_property_ref: ID | QNAME | IRI
+
+property_cardinality_restriction_axiom: "restricts" semantic_property_ref "to" cardinality_restriction_kind UNSIGNED_INTEGER (type_ref)?
+
+property_value_restriction_axiom: "restricts" semantic_property_ref "to" (literal | anonymous_instance | named_instance_ref)
+
+property_self_restriction_axiom: "restricts" semantic_property_ref "to" "self"
+
+key_axiom: "key" property_ref ("," property_ref)*
+
+instance_enumeration_axiom: "oneOf" concept_instance_ref ("," concept_instance_ref)*
+
+literal_enumeration_axiom: "oneOf" literal ("," literal)*
+
+concept_type_assertion: concept_ref
+
+relation_type_assertion: relation_entity_ref
+
+property_value_assertion: semantic_property_ref (literal | anonymous_instance | named_instance_ref) ("," (literal | anonymous_instance | named_instance_ref))*
+
+predicate: unary_predicate | binary_predicate | builtin_predicate
+
+unary_predicate: type_predicate | relation_entity_predicate
+
+binary_predicate: property_predicate | same_as_predicate | different_from_predicate
+
+type_predicate: type_ref "(" argument ")"
+
+relation_entity_predicate: relation_entity_ref "(" argument "," argument "," argument ")"
+
+property_predicate: property_ref "(" argument "," argument ")"
+
+same_as_predicate: "sameAs" "(" argument "," argument ")"
+
+different_from_predicate: "differentFrom" "(" argument "," argument ")"
+
+builtin_predicate: "builtIn" "(" builtin_ref "," argument ("," argument)* ")"
+
+argument: ID | literal | named_instance_ref
+
+literal: integer_literal | decimal_literal | double_literal | boolean_literal | quoted_literal
+
+INTEGER: /[+-]?[0-9]+/
+
+DECIMAL: /[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)/
+
+DOUBLE: /[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?/
+
+BOOLEAN: "false" | "true"
+
+integer_literal: INTEGER
+
+decimal_literal: DECIMAL
+
+double_literal: DOUBLE
+
+boolean_literal: BOOLEAN
+
+quoted_literal: STRING (("^^" scalar_ref) | ("$" ID))?
+
+range_restriction_kind: "all" | "some"
+
+cardinality_restriction_kind: "exactly" | "min" | "max"
+
+extends: "extends"
+
+uses: "uses"
+
+includes: "includes"
+
+boolean: "false" | "true"
+
+unsigned_integer: UNSIGNED_INTEGER_STR
+
+integer: UNSIGNED_INTEGER_STR | INTEGER_STR
+
+decimal: DECIMAL_STR
+
+double: DOUBLE_STR
+
+BOOLEAN_STR: "false" | "true"
+
+UNSIGNED_INTEGER: /[0-9]+/
+
+UNSIGNED_INTEGER_STR: /[0-9]+/
+
+INTEGER_STR: /[+-]?[0-9]+/
+
+DECIMAL_STR: /[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+/
+
+DOUBLE_STR: /[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?/
+
+STRING: /\"(\\\"|[^\"])*\"/ | /'(\\'|[^'])*'/ | /'''(.|\n)*?'''/ | /"""(.|\n)*?"""/
+
+NAMESPACE: /<[^>#\s]*[#\/]>/
+
+IRI: ID | REF
+
+REF: FULL_IRI | ABBREVIATED_IRI
+
+FULL_IRI: /<[^>\s]*>/
+
+ABBREVIATED_IRI: ID ":" ID
+
+ID: /[a-zA-Z0-9_\-\.~%\$]+/
+
+QNAME: ID ":" ID
+
+ALPHA: /[a-zA-Z]/
+
+NUMERIC: /[0-9]/
+
+SPECIAL: /[_\-\.~%]/
+
+ML_COMMENT: /\/\*.*?\*\//s
+
+SL_COMMENT: /\/\/.*/
+
+WS: /[ \t\r\n]+/
