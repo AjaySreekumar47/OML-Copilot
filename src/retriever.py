@@ -1,83 +1,100 @@
-import json
-import ollama
-from sentence_transformers import SentenceTransformer
+# retriever.py - Core document retrieval functionality
+
+import tiktoken
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Load the JSONL dataset
-dataset = []
-with open('oml_examples.jsonl', 'r') as file:
-    for line in file:
-        dataset.append(json.loads(line))
-    print(f'Loaded {len(dataset)} entries')
+class OMLRetriever:
+    def __init__(self, vector_db, embedding_model, tokenizer=None, max_tokens=4096):
+        """
+        Initialize the OML retriever with a vector database and embedding model.
+        
+        Args:
+            vector_db: Database of examples with embeddings
+            embedding_model: Model for embedding queries
+            tokenizer: Tokenizer for managing context length
+            max_tokens: Maximum tokens for context window
+        """
+        self.vector_db = vector_db
+        self.embedding_model = embedding_model
+        self.tokenizer = tokenizer or tiktoken.get_encoding("cl100k_base")
+        self.max_tokens = max_tokens
+    
+    def retrieve(self, query, top_n=3):
+        """
+        Retrieve the most relevant examples for a given query.
+        
+        Args:
+            query (str): The query to find examples for
+            top_n (int): Number of examples to retrieve
+            
+        Returns:
+            list: Top N relevant examples with similarity scores
+        """
+        # Truncate query to token limit
+        query = self._truncate_to_token_limit(query)
 
-# Initialize the SentenceTransformer model
-EMBEDDING_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
-LANGUAGE_MODEL = "mistral"  # The Mistral model you pulled
+        # Use E5 model's query format for embedding
+        query_embedding = self.embedding_model.encode(f"query: {query}")
 
-# VECTOR_DB to store input-output pairs and their embeddings
-VECTOR_DB = []
+        similarities = []
+        for input_text, output_text, input_embedding, output_embedding in self.vector_db:
+            # Calculate similarity
+            similarity = self._calculate_cosine_similarity(query_embedding, input_embedding)
+            similarities.append((output_text, similarity))
 
-# Function to add input-output pairs to the database with embeddings
-def add_chunk_to_database(input_text, output_text):
-    input_embedding = EMBEDDING_MODEL.encode([input_text])[0]  # Use SentenceTransformer for input embedding
-    output_embedding = EMBEDDING_MODEL.encode([output_text])[0]  # Use SentenceTransformer for output embedding
-    VECTOR_DB.append((input_text, output_text, input_embedding, output_embedding))
+        # Sort by similarity in descending order
+        similarities.sort(key=lambda x: x[1], reverse=True)
 
-# Add all input-output pairs from the dataset to the VECTOR_DB
-for i, example in enumerate(dataset):
-    add_chunk_to_database(example['input'], example['output'])
-    print(f'Added example {i+1}/{len(dataset)} to the database')
+        # Print the retrieved RAGs for debugging
+        print("\nRetrieved RAGs:")
+        for i, (output_text, similarity) in enumerate(similarities[:top_n]):
+            # Truncate output for display
+            display_text = self._truncate_to_token_limit(output_text, max_tokens=100)
+            print(f"Rank {i+1}: Similarity = {similarity:.4f} -> {display_text}")
 
-# Function to calculate cosine similarity between two vectors
-def cosine_similarity(a, b):
-    dot_product = sum([x * y for x, y in zip(a, b)])
-    norm_a = sum([x ** 2 for x in a]) ** 0.5
-    norm_b = sum([x ** 2 for x in b]) ** 0.5
-    return dot_product / (norm_a * norm_b)
+        # Return the top N most relevant outputs
+        return similarities[:top_n]
+    
+    def retrieve_by_keyword(self, keyword):
+        """
+        Fetches an example statement that correctly uses the specified keyword.
+        
+        Args:
+            keyword (str): The keyword to search for
+            
+        Returns:
+            str: Example that uses the keyword
+        """
+        for input_text, output_text, _, _ in self.vector_db:
+            if keyword and (keyword in input_text or keyword in output_text):
+                return output_text  # Return the first relevant example found
 
-# Function to retrieve the top N most similar outputs based on the input query
-def retrieve(query, top_n=3):
-    query_embedding = EMBEDDING_MODEL.encode([query])[0]  # Get embedding for the query (input part)
-    similarities = []
-    for input_text, output_text, input_embedding, output_embedding in VECTOR_DB:
-        similarity = cosine_similarity(query_embedding, input_embedding)  # Compare with input embeddings
-        similarities.append((output_text, similarity))
-
-    # Sort by similarity in descending order
-    similarities.sort(key=lambda x: x[1], reverse=True)
-
-    # Return the top N most relevant outputs
-    return similarities[:top_n]
-
-# Chatbot interaction
-# Create an OML vocabulary for describing different types of vehicles
-input_query = input('Ask me a question: ')
-retrieved_knowledge = retrieve(input_query)
-
-print('Retrieved knowledge:')
-for output_text, similarity in retrieved_knowledge:
-    print(f' - (similarity: {similarity:.2f}) {output_text}')
-
-# Construct the instruction prompt for the chatbot
-instruction_prompt = '''You are a helpful chatbot.
-Use only the following pieces of context to generate OML code.
-Don't make up any new information about the structure and grammar of OML:
-''' + '\n'.join([f' - {chunk}' for chunk, similarity in retrieved_knowledge])
-
-# Stream the chatbot's response using the Mistral model
-stream = ollama.chat(
-    model=LANGUAGE_MODEL,
-    messages=[
-        {'role': 'system', 'content': instruction_prompt},
-        {'role': 'user', 'content': input_query},
-    ],
-    stream=True,
-)
-
-response_content = ""  # Variable to store the response content
-
-# Print and capture chatbot response in real-time
-for chunk in stream:
-    message = chunk['message']['content']
-    response_content += message  # Append the chunk to the variable
-    print(message, end='', flush=True)  # Print immediately with flush
+        return "No relevant example found in the database."  # Fallback case
+    
+    def _calculate_cosine_similarity(self, a, b):
+        """Calculate cosine similarity between two vectors."""
+        dot_product = sum([x * y for x, y in zip(a, b)])
+        norm_a = sum([x ** 2 for x in a]) ** 0.5
+        norm_b = sum([x ** 2 for x in b]) ** 0.5
+        return dot_product / (norm_a * norm_b)
+    
+    def _truncate_to_token_limit(self, text, max_tokens=None):
+        """
+        Truncate text to fit within the specified token limit.
+        
+        Args:
+            text (str): Input text to truncate
+            max_tokens (int): Maximum tokens (defaults to self.max_tokens)
+            
+        Returns:
+            str: Truncated text
+        """
+        if max_tokens is None:
+            max_tokens = self.max_tokens
+            
+        tokens = self.tokenizer.encode(text)
+        if len(tokens) > max_tokens:
+            truncated_tokens = tokens[:max_tokens]
+            return self.tokenizer.decode(truncated_tokens)
+        return text
