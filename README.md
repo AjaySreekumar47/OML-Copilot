@@ -304,8 +304,6 @@ For the recommended demo workflow, use the Colab notebook linked above.
 
 ## Repository Structure
 
-Suggested structure:
-
 ```text
 OML-Copilot/
 ├── README.md
