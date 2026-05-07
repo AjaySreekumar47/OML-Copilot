@@ -1,7 +1,5 @@
 # OML-Copilot
 
-![OML Copilot Banner](docs/images/oml-copilot-banner.png)
-
 > Agentic AI assistant for generating and validating Ontological Modeling Language (OML) from natural language using RAG, constrained generation, grammar validation, and iterative feedback loops.
 
 [![AI Assistant](https://img.shields.io/badge/AI%20Assistant-OML%20Copilot-purple)]()
@@ -9,6 +7,10 @@
 [![Grammar Validation](https://img.shields.io/badge/Validation-Lark%20Grammar-green)]()
 [![Open Source LLM](https://img.shields.io/badge/LLM-Open%20Source-orange)]()
 [![NASA JPL](https://img.shields.io/badge/Presented%20at-onto%3ANexus%202025-red)]()
+
+
+
+![OML Copilot Banner](docs/images/oml-copilot-banner.png)
 
 ---
 
