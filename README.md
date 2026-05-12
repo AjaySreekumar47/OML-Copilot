@@ -277,28 +277,79 @@ Future improvements could include:
 
 ---
 
-## Installation
+## Installation and Local Usage
 
 Clone the repository:
 
 ```bash
 git clone https://github.com/AjaySreekumar47/OML-Copilot.git
 cd OML-Copilot
+````
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS/Linux:
+
+```bash
+source .venv/bin/activate
 ```
 
 Install dependencies:
 
 ```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Set up the package if needed:
+Run the lightweight test suite:
 
 ```bash
-python setup.py install
+pytest
 ```
 
-For the recommended demo workflow, use the Colab notebook linked above.
+### Retrieval-only demo
+
+The repository includes a local retrieval-only mode that verifies the RAG/example-retrieval workflow without requiring a local LLM server:
+
+```bash
+python demo.py --retrieval-only
+```
+
+Example prompt:
+
+```text
+Create a vocabulary for musical instruments.
+```
+
+This mode retrieves the most relevant OML examples from the example database and skips code generation.
+
+### Full generation mode
+
+Full natural-language-to-OML generation requires a local Ollama setup and an available model such as Mistral:
+
+```bash
+ollama pull mistral
+python demo.py --model mistral
+```
+
+If Ollama is not installed or running, use `--retrieval-only` to test the retrieval pipeline locally.
+
+### Colab demo
+
+The original Colab notebook remains available for the interactive agentic workflow:
+
+[Agentic Workflow Notebook](https://colab.research.google.com/drive/1yEh3t6-C3XvQSfJzBXCoco59BYSHuAZo?usp=sharing)
+
 
 ---
 
