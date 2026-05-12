@@ -7,9 +7,9 @@ import os
 import argparse
 import ollama
 
-from src.rag.retriever import OMLRetriever
-from src.rag.embeddings import EmbeddingManager
-from src.rag.examples_processor import ExamplesProcessor
+from src.retriever import OMLRetriever
+from src.embeddings import EmbeddingManager
+from src.examples_processor import ExamplesProcessor
 from src.validation.validator import OMLValidator
 from src.validation.error_handler import ErrorHandler
 from src.validation.feedback_loop import FeedbackLoop
@@ -17,14 +17,18 @@ from src.dependency.vocabulary_manager import VocabularyManager
 
 def main():
     parser = argparse.ArgumentParser(description='OML Copilot Demo')
-    parser.add_argument('--examples', '-e', type=str, default='src/rag/examples_db/examples.jsonl',
-                        help='Examples database file')
+    parser.add_argument('--examples', '-e', type=str, default='src/oml_examples.jsonl',
+                    help='Examples database file')
     parser.add_argument('--workspace', '-w', type=str, default='examples',
                         help='Workspace directory with OML files')
-    parser.add_argument('--grammar', '-g', type=str, default='src/grammar/oml3_lark.txt',
-                        help='Grammar file')
+    parser.add_argument('--grammar', '-g', type=str, default='grammar/oml3_lark.txt',
+                    help='Grammar file')
     parser.add_argument('--model', '-m', type=str, default='mistral',
                         help='Ollama model name')
+    parser.add_argument(
+        '--retrieval-only',
+        action='store_true',
+        help='Run retrieval demo without calling Ollama for code generation')
     args = parser.parse_args()
     
     print("Initializing OML Copilot...")
@@ -79,6 +83,14 @@ def main():
         print("\nRetrieving relevant examples...")
         retrieved_knowledge = retriever.retrieve(query)
         
+        if args.retrieval_only:
+            print("\nRetrieval-only mode enabled. Skipping Ollama generation.")
+            print("\nTop retrieved examples:")
+            for i, (example, score) in enumerate(retrieved_knowledge, start=1):
+                print(f"\n--- Example {i} | Similarity: {score:.4f} ---")
+                print(example[:1000])
+            continue
+
         # Create instruction prompt
         instruction_prompt = 'You are an OML code generation assistant. Use only the following context to generate syntactically correct OML code:\n\n'
         

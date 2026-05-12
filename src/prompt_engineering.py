@@ -1,7 +1,7 @@
 # prompt_engineering.py - Prompt templates and construction
 
 import re
-from src.rag.tokenizer_utils import truncate_text
+from src.tokenizer_utils import truncate_text
 
 def create_instruction_prompt(retrieved_knowledge, previous_oml_code=None, previous_error_message=None, max_tokens=4096):
     """

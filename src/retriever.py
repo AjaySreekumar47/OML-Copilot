@@ -35,7 +35,7 @@ class OMLRetriever:
         query = self._truncate_to_token_limit(query)
 
         # Use E5 model's query format for embedding
-        query_embedding = self.embedding_model.encode(f"query: {query}")
+        query_embedding = self.embedding_model.get_query_embedding(query)
 
         similarities = []
         for input_text, output_text, input_embedding, output_embedding in self.vector_db:

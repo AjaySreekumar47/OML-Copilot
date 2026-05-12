@@ -2,7 +2,7 @@
 
 import json
 import os
-from src.rag.embeddings import EmbeddingManager
+from src.embeddings import EmbeddingManager
 import tiktoken
 
 class ExamplesProcessor:
